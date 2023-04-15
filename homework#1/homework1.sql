@@ -126,7 +126,7 @@ SELECT product_name, manufacturer
 FROM mobile_phones
 WHERE product_name LIKE '%8%' OR
 	  manufacturer LIKE '%8%';
-      
+
 /*
 4.4.1 Товары, в которых есть ЦИФРА "8"
 Смотрим все поля (не уверен что это нужно)
