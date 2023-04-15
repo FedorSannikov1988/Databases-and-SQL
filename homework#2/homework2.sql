@@ -141,6 +141,7 @@ IF (`order_status` = 'CANCELLED', "Order is cancelled", "erroneous data !")))
 AS "full_order_status"
 FROM `orders`;
 
+
 /*
 4. Чем 0 отличается от NULL? Напишите ответ в комментарии 
 к домашнему заданию на платформе
