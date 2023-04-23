@@ -95,7 +95,14 @@ WHERE (`post` = "Рабочий") AND (`age` BETWEEN 24 AND 49);
  
 -- вариант №1 (считаем сколько специальностей (начальник, инженер и т.д.) упоминуется в таблице):
 
-SELECT COUNT(DISTINCT (`post`)) AS quantity_post 
+SELECT 
+COUNT(DISTINCT (`post`)) AS quantity_post 
+FROM `staff`;
+
+-- или
+
+SELECT 
+GROUP_CONCAT(`post`), COUNT(DISTINCT (`post`)) AS quantity_post 
 FROM `staff`;
 
 -- вариант №2.1 (показываем только ту специальность которая упоминается в таблице один раз (тоесть "Уборщик"):
@@ -105,9 +112,16 @@ FROM `staff`
 GROUP BY `post`
 HAVING quantity_post = 1;
 
--- вариант №2.2:
+-- вариант №2.3 (показываем только ту специальность которая упоминается в таблице один раз (тоесть "Уборщик"):
 
 SELECT COUNT(*) AS quantity_post
+FROM `staff`
+GROUP BY `post`
+HAVING quantity_post = 1;
+
+-- вариант №2.2:
+
+SELECT GROUP_CONCAT(`post`), COUNT(*) AS quantity_post
 FROM `staff`
 GROUP BY `post`
 HAVING quantity_post = 1;
