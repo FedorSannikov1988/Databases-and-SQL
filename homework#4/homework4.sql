@@ -162,44 +162,32 @@ WHERE c.`name` = 'Murzik';
 3. Вывести магазины, в которых НЕ продаются коты “Murzik” и “Zuza”
 */
 
--- INNER JOIN
-
-SELECT 
-s.`shopname`
-FROM `cats` AS c
-JOIN `shops` AS s
-ON s.id = c.shops_id
-WHERE 
-(c.`name` != 'Murzik')
-AND
-(c.`name` != 'Zuza');
-
 -- LEFT JOIN
 
-SELECT 
-s.`shopname`
-FROM `cats` AS c
-LEFT JOIN `shops` AS s
-ON s.id = c.shops_id
-WHERE 
-(c.`name` != 'Murzik')
-AND
-(c.`name` != 'Zuza');
+SELECT s.`shopname`
+FROM `shops` AS s
+LEFT JOIN `cats` AS c
+ON s.`id` = c.`shops_id` AND ((c.`name` = 'Murzik') OR (c.`name` = 'Zuza'))
+WHERE c.`name` IS NULL;
+
+-- или
+
+SELECT s.`shopname`
+FROM `shops` AS s
+LEFT JOIN `cats` AS c
+ON s.`id` = c.`shops_id` AND c.`name` IN ('Murzik', 'Zuza')
+WHERE c.`name` IS NULL;
 
 -- RIGHT JOIN
 
-SELECT 
-s.`shopname`
+SELECT s.`shopname` AS `shop not have cat Murzik and Zuza`
 FROM `cats` AS c
 RIGHT JOIN `shops` AS s
-ON s.id = c.shops_id
-WHERE 
-(c.`name` != 'Murzik')
-AND
-(c.`name` != 'Zuza');
+ON s.`id` = c.`shops_id` AND c.`name` IN ('Murzik', 'Zuza')
+WHERE c.`name` IS NULL;
 
 /*
-Вывести название и цену для всех анализов, которые продавались 
+4. Вывести название и цену для всех анализов, которые продавались 
 5 февраля 2020 и всю следующую неделю.
 
 Есть таблица анализов Analysis:
