@@ -69,6 +69,10 @@ GROUP BY list_five_max_salary
 ORDER BY list_five_max_salary DESC
 LIMIT 5 OFFSET 0;
 
+SELECT `salary`
+FROM `staff`
+GROUP BY `salary`;
+
 /*
 4. Посчитайте суммарную зарплату (salary) по каждой специальности (роst)
 */

@@ -27,3 +27,12 @@ VALUES
 	(108, 'Вероника', 'Доцент', 'ИКТ', 30),
 	(109,'Григорий', 'Преподаватель', 'ИКТ', 25),
 	(110,'Георгий', 'Ассистент', 'Программирование', 30);
+
+
+SELECT
+  first_name, discipline, salary,
+  SUM(salary) OVER w AS payment_fund,
+  ROUND(salary * 100.0 / SUM(salary) OVER w) AS percentage 
+FROM staff
+WINDOW  w AS (PARTITION BY discipline)
+ORDER BY discipline, salary, id;

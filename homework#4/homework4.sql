@@ -119,7 +119,7 @@ RIGHT JOIN `shops` AS s
 ON s.id = c.shops_id;
 
 /*
-Вывести магазин, в котором продается 
+2. Вывести магазин, в котором продается 
 кот “Murzik” (попробуйте выполнить 2 способами)
 */
 
@@ -161,6 +161,36 @@ WHERE c.`name` = 'Murzik';
 /*
 3. Вывести магазины, в которых НЕ продаются коты “Murzik” и “Zuza”
 */
+
+SELECT * 
+FROM `shops`;
+
+SELECT * 
+FROM `cats`;
+
+SELECT s.`shopname`
+FROM shops AS s
+WHERE s.`id` NOT IN 
+(SELECT c.`shops_id` FROM `cats` AS c WHERE (c.`name` = 'Murzik') OR (c.`name` = 'Zuza'));
+
+-- или
+
+SELECT s.`shopname`, GROUP_CONCAT(c.`name` SEPARATOR ', ') AS name_cats_sold_in_store
+FROM `shops` AS s
+LEFT JOIN `cats` AS c
+ON s.`id` = c.`shops_id`
+GROUP BY s.`shopname`
+HAVING (not LOCATE('Murzik', name_cats_sold_in_store) and not LOCATE('Zuza', name_cats_sold_in_store)) or name_cats_sold_in_store IS NULL;
+
+-- или
+
+SELECT s.`shopname`
+FROM `shops` AS s
+LEFT JOIN `cats` AS c
+ON s.`id` = c.`shops_id`
+GROUP BY s.`shopname`
+HAVING (not locate('Murzik', GROUP_CONCAT(c.`name` SEPARATOR ', ')) and not locate('Zuza', GROUP_CONCAT(c.`name` SEPARATOR ', '))) or GROUP_CONCAT(c.`name` SEPARATOR ', ') IS NULL;
+
 
 -- LEFT JOIN
 
