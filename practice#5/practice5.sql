@@ -1,3 +1,9 @@
+DROP DATABASE IF EXISTS practice_five;
+
+CREATE DATABASE practice_five;
+
+USE practice_five;
+
 -- Оценки учеников
 DROP TABLE IF EXISTS academic_record;
 CREATE TABLE academic_record (

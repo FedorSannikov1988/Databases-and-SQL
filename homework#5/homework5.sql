@@ -135,6 +135,7 @@ CREATE TABLE media_types(
 INSERT INTO media_types (name_type)
 VALUES 	('Photo'), ('Music'), ('Video'), ('Post');
 
+
 -- медиа
 DROP TABLE IF EXISTS media;
 
@@ -227,5 +228,197 @@ INSERT INTO `profiles` (user_id, gender, birthday, photo_id, hometown) VALUES
 старше 20 лет.
 */
 
+SELECT * FROM `users`;
 
-SELECT * FROM users;
+SELECT * FROM `profiles`;
+
+/*
+Вариант запроса для создания представления №1:
+Минусы данного варианта:
+1-ин но очень сущесвенный я немогу в WHERE обратиться к full_years
+так как данной колонки просто не сущесвует не в одной из двух таблиц
+и вынужден в WHERE обращаться к любому из столбцов таблицы profiles
+что вносит некоторый "сумбур"
+*/
+
+SELECT
+u.`firstname`,
+u.`lastname`,
+p.`hometown`,
+p.`gender`,
+p.`birthday`,
+TRUNCATE((DATEDIFF(CURRENT_DATE(), p.`birthday`)/365), 0) AS `full_years`
+FROM `users` AS u
+LEFT JOIN `profiles` AS p
+ON u.`id` = p.`user_id` AND TRUNCATE((DATEDIFF(CURRENT_DATE(), p.`birthday`)/365), 0) < 20
+WHERE p.`birthday` IS NOT NULL;
+
+/*
+Вариант запроса для создания представления №2:
+Более удачен за счет использования подзапроса "создающего" 
+таблицу "second_level_profiles" в результате чего дальнейшая работа
+с колонками более очевидна
+*/
+
+SELECT
+u.`firstname`,
+u.`lastname`,
+second_level_profiles.`hometown`,
+second_level_profiles.`gender`,
+second_level_profiles.`birthday`,
+second_level_profiles.`full_years`
+FROM 
+(SELECT
+p.`user_id`,
+p.`hometown`,
+p.`gender`,
+p.`birthday`,
+TRUNCATE((DATEDIFF(CURRENT_DATE(), p.`birthday`)/365), 0) AS `full_years`
+FROM `profiles` AS p
+WHERE TRUNCATE((DATEDIFF(CURRENT_DATE(), p.`birthday`)/365), 0) < 20) AS second_level_profiles
+LEFT JOIN `users` AS u
+ON u.`id` = second_level_profiles.`user_id`;
+
+-- создаем представление выбрав запрос №2 (он мне больше понравился):
+
+CREATE OR REPLACE VIEW users_under_20_years_of_age AS
+SELECT
+u.`firstname`,
+u.`lastname`,
+second_level_profiles.`hometown`,
+second_level_profiles.`gender`,
+second_level_profiles.`birthday`,
+second_level_profiles.`full_years`
+FROM 
+(SELECT
+p.`user_id`,
+p.`hometown`,
+p.`gender`,
+p.`birthday`,
+TRUNCATE((DATEDIFF(CURRENT_DATE(), p.`birthday`)/365), 0) AS `full_years`
+FROM `profiles` AS p
+WHERE TRUNCATE((DATEDIFF(CURRENT_DATE(), p.`birthday`)/365), 0) < 20) AS second_level_profiles
+LEFT JOIN `users` AS u
+ON u.`id` = second_level_profiles.`user_id`;
+
+-- вызываем созданное представление:
+
+SELECT * FROM users_under_20_years_of_age;
+
+/*
+2. Найдите кол-во,  отправленных сообщений каждым пользователем и выведите ранжированный 
+список пользователей, указав имя и фамилию пользователя, количество отправленных сообщений 
+и место в рейтинге (первое место у пользователя с максимальным количеством сообщений).
+(используйте DENSE_RANK)
+*/
+
+SELECT * FROM `messages`;
+
+SELECT * FROM `users`;
+
+SELECT
+u.`firstname`,
+u.`lastname`,
+m.`body`,
+m.`created_at`,
+COUNT(m.`body`) OVER(PARTITION BY u.`id` ORDER BY m.`created_at`) AS 'count message user'
+FROM `users` AS u
+JOIN `messages` AS m
+ON u.`id` = m.`from_user_id`;
+
+/*
+Создаю представление для приминения в дальнейшем 
+DENSE_RANK() так как в сощесвующей таблице такой колонки
+нет
+*/
+
+CREATE OR REPLACE VIEW subtable_for_task_2 AS
+SELECT
+u.`firstname`,
+u.`lastname`,
+COUNT(m.`body`) OVER(PARTITION BY u.`id`) AS 'count_sent_message'
+FROM `users` AS u
+JOIN `messages` AS m
+ON u.`id` = m.`from_user_id`;
+
+SELECT * FROM subtable_for_task_2;
+
+/*
+непосредсвенный скрипт показывающий рэйтинг
+по отправленным сообщениям пользователя
+*/
+
+SELECT
+DISTINCT DENSE_RANK() OVER(ORDER BY `count_sent_message` DESC) AS 'rating',
+`count_sent_message`,
+`firstname`,
+`lastname`
+FROM subtable_for_task_2;
+
+/*
+или через подзапрос (что посути тоже самое что и создание представления)
+формально это один запрос но его длинна и читаемость усложненны
+*/
+
+SELECT
+DISTINCT DENSE_RANK() OVER(ORDER BY subtable.`count_sent_message` DESC) AS 'rating',
+subtable.`count_sent_message`,
+subtable.`firstname`,
+subtable.`lastname`
+FROM 
+(
+SELECT
+u.`firstname`,
+u.`lastname`,
+COUNT(m.`body`) OVER(PARTITION BY u.`id`) AS 'count_sent_message'
+FROM `users` AS u
+JOIN `messages` AS m
+ON u.`id` = m.`from_user_id`
+) AS subtable;
+
+/*
+3. Выберите все сообщения, отсортируйте сообщения 
+по возрастанию даты отправления (created_at) и найдите 
+разницу дат отправления между соседними сообщениями, 
+получившегося списка. (используйте LEAD или LAG)
+*/
+
+-- смотрим что в таблице
+
+SELECT `body`, `created_at`
+FROM messages;
+
+/*
+Создаю представление для приминения в дальнейшем 
+DENSE_RANK() так как в сощесвующей таблице такой колонки
+нет
+*/
+
+CREATE OR REPLACE VIEW subtable_for_task_3 AS
+SELECT `body`, `created_at`,
+	LAG(`created_at`) OVER w AS 'lag',
+    LEAD(`created_at`) OVER w AS 'lead'
+FROM messages
+WINDOW w AS (ORDER BY `created_at` ASC);
+
+SELECT *
+FROM subtable_for_task_3;
+
+SELECT `body`, `created_at`, 
+`lag`, TIME_TO_SEC(TIMEDIFF(`created_at`, `lag`)) AS 'difference_lag_sek',
+`lead`, TIME_TO_SEC(TIMEDIFF(`lead`, `created_at`)) AS 'difference_lead_sek'
+FROM subtable_for_task_3;
+
+-- тоже самое только с помощью подзапроса
+
+SELECT subtable.`body`, subtable.`created_at`, 
+`lag`, TIME_TO_SEC(TIMEDIFF(subtable.`created_at`, subtable.`lag`)) AS 'difference_lag_sek',
+`lead`, TIME_TO_SEC(TIMEDIFF(subtable.`lead`, subtable.`created_at`)) AS 'difference_lead_sek'
+FROM 
+(
+SELECT `body`, `created_at`,
+	LAG(`created_at`) OVER w AS 'lag',
+    LEAD(`created_at`) OVER w AS 'lead'
+FROM messages
+WINDOW w AS (ORDER BY `created_at` ASC)
+) AS subtable;
