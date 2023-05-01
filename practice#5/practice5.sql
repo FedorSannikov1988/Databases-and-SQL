@@ -6,6 +6,7 @@ USE practice_five;
 
 -- Оценки учеников
 DROP TABLE IF EXISTS academic_record;
+
 CREATE TABLE academic_record (
 	id INT AUTO_INCREMENT PRIMARY KEY, 
 	name VARCHAR(45),
@@ -45,8 +46,13 @@ SELECT *,
     MIN(ar.grade) OVER w AS min_grade,
     MAX(ar.grade) OVER w AS max_grade,
     COUNT(ar.grade) OVER w AS grade_count
-FROM academic_record as ar 
+FROM academic_record as ar
 WINDOW w AS (PARTITION BY ar.name ORDER BY ar.subject);
+
+
+SELECT *,
+    COUNT(ar.grade) OVER(PARTITION BY ar.name ORDER BY ar.subject) AS grade_count
+FROM academic_record as ar;
 
 /*текущая успеваемость 
 оценка в следующей четверти
@@ -59,6 +65,7 @@ SELECT *,
 FROM academic_record as ar
 WHERE ar.name = 'Петя' AND ar.subject = 'физика'
 WINDOW w AS (ORDER BY ar.quartal);
+
 CREATE TABLE users (
 	id SERIAL PRIMARY KEY, -- SERIAL = BIGINT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE
     firstname VARCHAR(50),

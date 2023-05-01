@@ -396,8 +396,8 @@ DENSE_RANK() так как в сощесвующей таблице такой �
 
 CREATE OR REPLACE VIEW subtable_for_task_3 AS
 SELECT `body`, `created_at`,
-	LAG(`created_at`) OVER w AS 'lag',
-    LEAD(`created_at`) OVER w AS 'lead'
+LAG(`created_at`) OVER w AS 'lag',
+LEAD(`created_at`) OVER w AS 'lead'
 FROM messages
 WINDOW w AS (ORDER BY `created_at` ASC);
 
@@ -417,8 +417,8 @@ SELECT subtable.`body`, subtable.`created_at`,
 FROM 
 (
 SELECT `body`, `created_at`,
-	LAG(`created_at`) OVER w AS 'lag',
-    LEAD(`created_at`) OVER w AS 'lead'
+LAG(`created_at`) OVER w AS 'lag',
+LEAD(`created_at`) OVER w AS 'lead'
 FROM messages
 WINDOW w AS (ORDER BY `created_at` ASC)
 ) AS subtable;
