@@ -408,8 +408,14 @@ BEGIN
 			(SELECT lastname FROM users WHERE id = id_max_users),
 			id_max_users, 
 			ROUND(user_popularity_coefficient(id_max_users), round) );
+            
+			ELSEIF (count_find > 1) THEN 
+            
+            SELECT ('В таблице есть пользователи с повторяющимися Id') AS 'ATTENTION';
         
-			ELSE SELECT ('В таблице есть пользователи с повторяющимися Id') AS 'ATTENTION';
+			ELSEIF (count_find = 0) THEN 
+            
+            SELECT ('В таблице есть Id не привязанные к пользователю') AS 'ATTENTION';
         
 			END IF;
         
